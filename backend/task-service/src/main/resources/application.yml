@@ -1,0 +1,139 @@
+server:
+  port: 8103
+
+spring:
+  application:
+    name: task-service
+  config:
+    import: optional:nacos:${spring.application.name}.yml?group=DEFAULT_GROUP&refreshEnabled=true
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://${MYSQL_HOST:192.168.101.68}:${MYSQL_PORT:3306}/${MYSQL_DATABASE:aetherflow}?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai&useSSL=false&allowPublicKeyRetrieval=true
+    username: ${MYSQL_USERNAME:root}
+    password: ${MYSQL_PASSWORD:mysql}
+  data:
+    redis:
+      host: ${REDIS_HOST:192.168.101.68}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD:}
+      database: ${REDIS_DATABASE:0}
+  rabbitmq:
+    host: ${RABBITMQ_HOST:192.168.101.68}
+    port: ${RABBITMQ_PORT:5672}
+    username: ${RABBITMQ_USERNAME:aetherflow}
+    password: ${RABBITMQ_PASSWORD:aetherflow}
+    virtual-host: ${RABBITMQ_VHOST:/}
+    listener:
+      simple:
+        acknowledge-mode: auto
+        default-requeue-rejected: false
+        prefetch: ${RABBITMQ_LISTENER_PREFETCH:10}
+  cloud:
+    nacos:
+      discovery:
+        server-addr: ${NACOS_ADDR:192.168.101.68:8848}
+        namespace: ${NACOS_NAMESPACE:}
+      config:
+        server-addr: ${NACOS_ADDR:192.168.101.68:8848}
+        file-extension: yml
+        namespace: ${NACOS_NAMESPACE:}
+    sentinel:
+      transport:
+        dashboard: ${SENTINEL_DASHBOARD:192.168.101.68:8858}
+      eager: true
+
+mybatis-plus:
+  configuration:
+    map-underscore-to-camel-case: true
+  global-config:
+    db-config:
+      id-type: auto
+
+xxl:
+  job:
+    enabled: ${XXL_JOB_ENABLED:false}
+    admin-addresses: ${XXL_JOB_ADMIN_ADDRESSES:http://192.168.101.68:8088/xxl-job-admin}
+    app-name: aetherflow-task-service
+    port: ${XXL_JOB_EXECUTOR_PORT:9999}
+    access-token: ${XXL_JOB_ACCESS_TOKEN:}
+    log-path: ./logs/xxl-job
+    log-retention-days: 30
+
+feign:
+  sentinel:
+    enabled: true
+
+seata:
+  enabled: true
+  application-id: ${spring.application.name}
+  tx-service-group: aetherflow_tx_group
+  service:
+    vgroup-mapping:
+      aetherflow_tx_group: default
+    grouplist:
+      default: ${SEATA_ADDR:192.168.101.68:8091}
+
+aetherflow:
+  task:
+    max-retries: ${TASK_MAX_RETRIES:3}
+    scan-limit: ${TASK_SCAN_LIMIT:100}
+    redis-ttl: ${TASK_REDIS_TTL:2h}
+    dispatch-timeout: ${TASK_DISPATCH_TIMEOUT:5m}
+    execution-timeout: ${TASK_EXECUTION_TIMEOUT:30m}
+    retry-initial-interval: ${TASK_RETRY_INITIAL_INTERVAL:1m}
+    retry-max-interval: ${TASK_RETRY_MAX_INTERVAL:10m}
+    scheduler:
+      enabled: ${TASK_SCHEDULER_ENABLED:true}
+      retry-fixed-delay: ${TASK_RETRY_FIXED_DELAY:60000}
+      timeout-fixed-delay: ${TASK_TIMEOUT_FIXED_DELAY:60000}
+    consumer:
+      dispatch-enabled: ${TASK_CONSUMER_DISPATCH_ENABLED:true}
+      dead-letter-enabled: ${TASK_CONSUMER_DEAD_LETTER_ENABLED:true}
+    mq:
+      dispatch-exchange: ${TASK_DISPATCH_EXCHANGE:aetherflow.task.scheduler.exchange}
+      dispatch-queue: ${TASK_DISPATCH_QUEUE:aetherflow.task.scheduler.queue}
+      dispatch-routing-key: ${TASK_DISPATCH_ROUTING_KEY:task.schedule.dispatch}
+    queue-protection:
+      enabled: ${TASK_QUEUE_PROTECTION_ENABLED:true}
+      fail-closed-on-monitor-error: ${TASK_QUEUE_FAIL_CLOSED:false}
+      busy-depth-threshold: ${TASK_QUEUE_BUSY_DEPTH_THRESHOLD:1000}
+      recovery-depth-threshold: ${TASK_QUEUE_RECOVERY_DEPTH_THRESHOLD:300}
+      busy-unacked-threshold: ${TASK_QUEUE_BUSY_UNACKED_THRESHOLD:500}
+      recovery-unacked-threshold: ${TASK_QUEUE_RECOVERY_UNACKED_THRESHOLD:100}
+      busy-when-no-consumers: ${TASK_QUEUE_BUSY_WHEN_NO_CONSUMERS:true}
+      cache-ttl: ${TASK_QUEUE_CACHE_TTL:30s}
+      monitor-interval-ms: ${TASK_QUEUE_MONITOR_INTERVAL_MS:10000}
+      management-api:
+        base-url: ${RABBITMQ_MANAGEMENT_URL:http://192.168.101.68:15672}
+        username: ${RABBITMQ_MANAGEMENT_USERNAME:${RABBITMQ_USERNAME:aetherflow}}
+        password: ${RABBITMQ_MANAGEMENT_PASSWORD:${RABBITMQ_PASSWORD:aetherflow}}
+        virtual-host: ${RABBITMQ_MANAGEMENT_VHOST:${RABBITMQ_VHOST:/}}
+      monitor-queues:
+        - ${TASK_DISPATCH_QUEUE:aetherflow.task.scheduler.queue}
+        - ${AI_TASK_QUEUE:aetherflow.ai.task.queue}
+    sentinel-protection:
+      enabled: ${TASK_SENTINEL_PROTECTION_ENABLED:true}
+      dispatch-resource: ${TASK_SENTINEL_DISPATCH_RESOURCE:task-service-ai-dispatch-create}
+      consumer-dispatch-resource: ${TASK_SENTINEL_CONSUMER_DISPATCH_RESOURCE:task-service-ai-consumer-dispatch}
+      dispatch-qps: ${TASK_SENTINEL_DISPATCH_QPS:50}
+      consumer-dispatch-qps: ${TASK_SENTINEL_CONSUMER_DISPATCH_QPS:20}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  endpoint:
+    health:
+      probes:
+        enabled: true
+
+springdoc:
+  api-docs:
+    enabled: true
+  swagger-ui:
+    enabled: true
+
+logging:
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"

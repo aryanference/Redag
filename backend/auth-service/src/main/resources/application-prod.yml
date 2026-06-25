@@ -1,0 +1,64 @@
+spring:
+  datasource:
+    url: jdbc:mysql://${MYSQL_HOST:mysql}:${MYSQL_PORT:3306}/${MYSQL_DATABASE:aetherflow}?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai&useSSL=false&allowPublicKeyRetrieval=true
+    username: ${MYSQL_USERNAME:root}
+    password: ${MYSQL_PASSWORD}
+  data:
+    redis:
+      host: ${REDIS_HOST:redis}
+      password: ${REDIS_PASSWORD}
+  cloud:
+    nacos:
+      discovery:
+        server-addr: ${NACOS_ADDR:nacos:8848}
+        # Use Nacos auth credentials when NACOS_AUTH_ENABLE=true on the Nacos container.
+        username: ${NACOS_USERNAME:}
+        password: ${NACOS_PASSWORD:}
+        namespace: ${NACOS_NAMESPACE:}
+      config:
+        server-addr: ${NACOS_ADDR:nacos:8848}
+        username: ${NACOS_USERNAME:}
+        password: ${NACOS_PASSWORD:}
+        namespace: ${NACOS_NAMESPACE:}
+    sentinel:
+      transport:
+        dashboard: ${SENTINEL_DASHBOARD:sentinel-dashboard:8858}
+
+aetherflow:
+  security:
+    jwt:
+      # PRODUCTION: JWT_SECRET MUST be set as an environment variable. There is no default,
+      # so Spring's placeholder resolver will fail to load the context if the env var is missing.
+      # JwtSecretValidator additionally rejects blank/known-default/short secrets at startup.
+      secret: ${JWT_SECRET}
+  auth:
+    token:
+      refresh-secret: ${JWT_REFRESH_SECRET}
+    # Demo user must never be seeded in production; defense-in-depth alongside DemoUserInitializer.
+    demo-user:
+      enabled: false
+    oauth:
+      github:
+        client-id: ${GITHUB_OAUTH_CLIENT_ID:}
+        client-secret: ${GITHUB_OAUTH_CLIENT_SECRET:}
+        redirect-uri: ${GITHUB_OAUTH_REDIRECT_URI:}
+        frontend-base-url: ${FRONTEND_BASE_URL:}
+        success-path: ${GITHUB_OAUTH_SUCCESS_PATH:/auth/oauth/callback}
+        failure-path: ${GITHUB_OAUTH_FAILURE_PATH:/login}
+        state-secret: ${GITHUB_OAUTH_STATE_SECRET}
+        state-ttl-minutes: ${GITHUB_OAUTH_STATE_TTL_MINUTES:10}
+      google:
+        client-id: ${GOOGLE_OAUTH_CLIENT_ID:}
+        client-secret: ${GOOGLE_OAUTH_CLIENT_SECRET:}
+        redirect-uri: ${GOOGLE_OAUTH_REDIRECT_URI:}
+        frontend-base-url: ${FRONTEND_BASE_URL:}
+        success-path: ${GOOGLE_OAUTH_SUCCESS_PATH:/auth/oauth/callback}
+        failure-path: ${GOOGLE_OAUTH_FAILURE_PATH:/login}
+        default-redirect-path: ${GOOGLE_OAUTH_DEFAULT_REDIRECT:/projects}
+        state-ttl-minutes: ${GOOGLE_OAUTH_STATE_TTL_MINUTES:10}
+
+springdoc:
+  api-docs:
+    enabled: false
+  swagger-ui:
+    enabled: false

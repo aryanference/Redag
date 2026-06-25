@@ -1,0 +1,151 @@
+server:
+  port: 8102
+
+spring:
+  application:
+    name: workflow-service
+  config:
+    import: optional:nacos:${spring.application.name}.yml?group=DEFAULT_GROUP&refreshEnabled=true
+  ai:
+    ollama:
+      base-url: ${OLLAMA_BASE_URL:http://localhost:11434}
+      embedding:
+        options:
+          model: ${WORKFLOW_EMBEDDING_MODEL:nomic-embed-text}
+  data:
+    redis:
+      host: ${REDIS_HOST:192.168.101.68}
+      port: ${REDIS_PORT:6379}
+      database: ${REDIS_DATABASE:0}
+      timeout: 3s
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://${MYSQL_HOST:192.168.101.68}:${MYSQL_PORT:3306}/${MYSQL_DATABASE:aetherflow}?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai&useSSL=false&allowPublicKeyRetrieval=true
+    username: ${MYSQL_USERNAME:root}
+    password: ${MYSQL_PASSWORD:mysql}
+  cloud:
+    nacos:
+      discovery:
+        server-addr: ${NACOS_ADDR:192.168.101.68:8848}
+        namespace: ${NACOS_NAMESPACE:}
+      config:
+        server-addr: ${NACOS_ADDR:192.168.101.68:8848}
+        file-extension: yml
+        namespace: ${NACOS_NAMESPACE:}
+    sentinel:
+      transport:
+        dashboard: ${SENTINEL_DASHBOARD:192.168.101.68:8858}
+      eager: true
+    openfeign:
+      client:
+        config:
+          default:
+            connectTimeout: ${WORKFLOW_FEIGN_CONNECT_TIMEOUT_MILLIS:5000}
+            readTimeout: ${WORKFLOW_FEIGN_READ_TIMEOUT_MILLIS:1800000}
+
+mybatis-plus:
+  configuration:
+    map-underscore-to-camel-case: true
+  global-config:
+    db-config:
+      id-type: auto
+
+seata:
+  enabled: true
+  application-id: ${spring.application.name}
+  tx-service-group: aetherflow_tx_group
+  service:
+    vgroup-mapping:
+      aetherflow_tx_group: default
+    grouplist:
+      default: ${SEATA_ADDR:192.168.101.68:8091}
+
+feign:
+  sentinel:
+    enabled: true
+
+aetherflow:
+  minio:
+    endpoint: ${MINIO_ENDPOINT:http://192.168.101.68:9000}
+    public-endpoint: ${MINIO_PUBLIC_ENDPOINT:http://192.168.101.68:9000}
+    access-key: ${MINIO_ACCESS_KEY:minioadmin}
+    secret-key: ${MINIO_SECRET_KEY:minioadmin}
+    bucket: ${MINIO_BUCKET:aetherflow}
+  file:
+    internal-token: ${FILE_INTERNAL_TOKEN:aetherflow-file-internal-dev-token}
+  task:
+    internal-token: ${TASK_INTERNAL_TOKEN:aetherflow-task-internal-dev-token}
+  workflow:
+    node:
+      file-internal-token: ${FILE_INTERNAL_TOKEN:aetherflow-file-internal-dev-token}
+      export-object-prefix: ${WORKFLOW_EXPORT_OBJECT_PREFIX:workflow/exports}
+      default-summary-language: ${WORKFLOW_SUMMARY_LANGUAGE:English}
+      default-whisper-language: ${WORKFLOW_WHISPER_LANGUAGE:auto}
+      ai-call-timeout: ${WORKFLOW_AI_NODE_CALL_TIMEOUT:10m}
+    embedding:
+      default-provider: ${WORKFLOW_EMBEDDING_PROVIDER:ollama}
+      default-model: ${WORKFLOW_EMBEDDING_MODEL:nomic-embed-text}
+      default-chunk-size: ${WORKFLOW_EMBEDDING_CHUNK_SIZE:512}
+      default-overlap: ${WORKFLOW_EMBEDDING_OVERLAP:128}
+      default-text-variable: ${WORKFLOW_EMBEDDING_TEXT_VARIABLE:ocrText}
+      default-vector-collection: ${WORKFLOW_EMBEDDING_VECTOR_COLLECTION:workflow-embeddings}
+      ollama-base-url: ${OLLAMA_BASE_URL:http://localhost:11434}
+      timeout: ${WORKFLOW_EMBEDDING_TIMEOUT:30s}
+      thread-pool-size: ${WORKFLOW_EMBEDDING_THREAD_POOL_SIZE:2}
+      queue-capacity: ${WORKFLOW_EMBEDDING_QUEUE_CAPACITY:20}
+    ocr:
+      default-provider: ${WORKFLOW_OCR_PROVIDER:tesseract}
+      default-language: ${WORKFLOW_OCR_LANGUAGE:auto}
+      mock: ${WORKFLOW_OCR_MOCK:false}
+      mock-text: ${WORKFLOW_OCR_MOCK_TEXT:Mock OCR text for AetherFlow demo.}
+      timeout: ${WORKFLOW_OCR_TIMEOUT:30s}
+      thread-pool-size: ${WORKFLOW_OCR_THREAD_POOL_SIZE:2}
+      queue-capacity: ${WORKFLOW_OCR_QUEUE_CAPACITY:20}
+      tesseract:
+        data-path: ${TESSDATA_PREFIX:}
+        fallback-language: ${WORKFLOW_OCR_TESSERACT_LANGUAGE:eng}
+    runtime:
+      task-executor:
+        core-pool-size: ${WORKFLOW_RUNTIME_CORE_POOL_SIZE:10}
+        max-pool-size: ${WORKFLOW_RUNTIME_MAX_POOL_SIZE:50}
+        queue-capacity: ${WORKFLOW_RUNTIME_QUEUE_CAPACITY:100}
+      retry:
+        max-attempts: ${WORKFLOW_RUNTIME_RETRY_MAX_ATTEMPTS:3}
+        initial-delay: ${WORKFLOW_RUNTIME_RETRY_INITIAL_DELAY:0s}
+        backoff-multiplier: ${WORKFLOW_RUNTIME_RETRY_BACKOFF_MULTIPLIER:2.0}
+        max-delay: ${WORKFLOW_RUNTIME_RETRY_MAX_DELAY:30s}
+      events:
+        mq:
+          enabled: ${WORKFLOW_RUNTIME_EVENT_MQ_ENABLED:false}
+          exchange: ${WORKFLOW_RUNTIME_EVENT_MQ_EXCHANGE:}
+          routing-key: ${WORKFLOW_RUNTIME_EVENT_MQ_ROUTING_KEY:}
+      observability:
+        max-events-per-workflow: ${WORKFLOW_RUNTIME_OBSERVABILITY_MAX_EVENTS:200}
+      recovery:
+        enabled: ${WORKFLOW_RUNTIME_RECOVERY_ENABLED:true}
+        scan-limit: ${WORKFLOW_RUNTIME_RECOVERY_SCAN_LIMIT:100}
+      lock:
+        enabled: ${WORKFLOW_RUNTIME_LOCK_ENABLED:true}
+        ttl: ${WORKFLOW_RUNTIME_LOCK_TTL:60s}
+        key-prefix: ${WORKFLOW_RUNTIME_LOCK_KEY_PREFIX:aetherflow:workflow:runtime:lock:}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  endpoint:
+    health:
+      probes:
+        enabled: true
+
+springdoc:
+  api-docs:
+    enabled: true
+  swagger-ui:
+    enabled: true
+
+logging:
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} [traceId=%X{traceId:-} workflowId=%X{workflowId:-} nodeId=%X{nodeId:-} taskId=%X{taskId:-}] - %msg%n"
+

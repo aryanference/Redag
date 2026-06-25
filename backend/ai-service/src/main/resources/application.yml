@@ -1,0 +1,118 @@
+server:
+  port: 8104
+
+spring:
+  application:
+    name: ai-service
+  config:
+    import: optional:nacos:${spring.application.name}.yml?group=DEFAULT_GROUP&refreshEnabled=true
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://${MYSQL_HOST:192.168.101.68}:${MYSQL_PORT:3306}/${MYSQL_DATABASE:aetherflow}?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai&useSSL=false&allowPublicKeyRetrieval=true
+    username: ${MYSQL_USERNAME:root}
+    password: ${MYSQL_PASSWORD:mysql}
+  rabbitmq:
+    host: ${RABBITMQ_HOST:192.168.101.68}
+    port: ${RABBITMQ_PORT:5672}
+    username: ${RABBITMQ_USERNAME:aetherflow}
+    password: ${RABBITMQ_PASSWORD:aetherflow}
+    virtual-host: ${RABBITMQ_VHOST:/}
+    listener:
+      simple:
+        retry:
+          enabled: true
+          max-attempts: ${AI_TASK_RETRY_MAX_ATTEMPTS:3}
+          initial-interval: ${AI_TASK_RETRY_INITIAL_INTERVAL:2s}
+          multiplier: 2
+          max-interval: ${AI_TASK_RETRY_MAX_INTERVAL:30s}
+        default-requeue-rejected: false
+        prefetch: ${AI_TASK_PREFETCH:2}
+  data:
+    redis:
+      host: ${REDIS_HOST:192.168.101.68}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD:}
+      database: ${REDIS_DATABASE:0}
+      timeout: ${REDIS_TIMEOUT:3s}
+  cloud:
+    nacos:
+      discovery:
+        server-addr: ${NACOS_ADDR:192.168.101.68:8848}
+        namespace: ${NACOS_NAMESPACE:}
+      config:
+        server-addr: ${NACOS_ADDR:192.168.101.68:8848}
+        file-extension: yml
+        namespace: ${NACOS_NAMESPACE:}
+    sentinel:
+      transport:
+        dashboard: ${SENTINEL_DASHBOARD:192.168.101.68:8858}
+      eager: true
+
+mybatis-plus:
+  configuration:
+    map-underscore-to-camel-case: true
+  global-config:
+    db-config:
+      id-type: auto
+
+aetherflow:
+  file:
+    internal-token: ${FILE_INTERNAL_TOKEN:aetherflow-file-internal-dev-token}
+  task:
+    internal-token: ${TASK_INTERNAL_TOKEN:aetherflow-task-internal-dev-token}
+  python-ai:
+    base-url: ${PYTHON_AI_BASE_URL:http://192.168.101.68:8200}
+    connect-timeout-millis: ${PYTHON_AI_CONNECT_TIMEOUT_MILLIS:3000}
+    read-timeout-millis: ${PYTHON_AI_READ_TIMEOUT_MILLIS:1800000}
+  ai:
+    default-provider: ${AI_DEFAULT_PROVIDER:OLLAMA}
+    default-model: ${AI_DEFAULT_MODEL:llama3}
+    task-cache-ttl: ${AI_TASK_CACHE_TTL:6h}
+    provider-timeout: ${AI_PROVIDER_TIMEOUT:60s}
+    callback-timeout: ${AI_CALLBACK_TIMEOUT:5s}
+    sentinel-enabled: ${AI_SENTINEL_ENABLED:true}
+    task-qps: ${AI_TASK_QPS:5}
+    provider-qps: ${AI_PROVIDER_QPS:2}
+    http-qps: ${AI_HTTP_QPS:10}
+    provider-failover-enabled: ${AI_PROVIDER_FAILOVER_ENABLED:true}
+    provider-auto-recover-primary: ${AI_PROVIDER_AUTO_RECOVER_PRIMARY:true}
+    provider-priority:
+      - ${AI_PROVIDER_PRIMARY:OPENAI}
+      - ${AI_PROVIDER_SECONDARY:OLLAMA}
+    provider-retry-max-attempts: ${AI_PROVIDER_RETRY_MAX_ATTEMPTS:2}
+    provider-retry-initial-backoff: ${AI_PROVIDER_RETRY_INITIAL_BACKOFF:200ms}
+    provider-retry-max-backoff: ${AI_PROVIDER_RETRY_MAX_BACKOFF:2s}
+    provider-circuit-failure-threshold: ${AI_PROVIDER_CIRCUIT_FAILURE_THRESHOLD:5}
+    provider-circuit-open-duration: ${AI_PROVIDER_CIRCUIT_OPEN_DURATION:60s}
+    provider-health-check-interval: ${AI_PROVIDER_HEALTH_CHECK_INTERVAL:30s}
+    provider-health-check-interval-millis: ${AI_PROVIDER_HEALTH_CHECK_INTERVAL_MILLIS:30000}
+    provider-recent-log-limit: ${AI_PROVIDER_RECENT_LOG_LIMIT:20}
+    provider-recent-metrics-limit: ${AI_PROVIDER_RECENT_METRICS_LIMIT:20}
+    listener-concurrent-consumers: ${AI_LISTENER_CONCURRENT_CONSUMERS:2}
+    listener-max-concurrent-consumers: ${AI_LISTENER_MAX_CONCURRENT_CONSUMERS:6}
+    listener-prefetch: ${AI_TASK_PREFETCH:2}
+
+feign:
+  sentinel:
+    enabled: true
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  endpoint:
+    health:
+      probes:
+        enabled: true
+
+springdoc:
+  api-docs:
+    enabled: true
+  swagger-ui:
+    enabled: true
+
+logging:
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"
+
