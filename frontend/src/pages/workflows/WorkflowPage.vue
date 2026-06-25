@@ -202,6 +202,11 @@ function openCopilot() {
   showCopilot.value = true
 }
 
+function openRunConsole() {
+  showCopilot.value = false
+  showRunConsole.value = true
+}
+
 function duplicateCurrentWorkflow() {
   const defaultName = `${workflowStore.workflowName} copy`
   const name = window.prompt(t('workflow.duplicatePrompt') ?? 'Enter name for duplicated workflow', defaultName)
