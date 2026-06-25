@@ -18,7 +18,7 @@ Redag is an AI-native orchestration layer for enterprise automation. Users visua
 
 The frontend handles visual design and runtime observability; Java micro‑services manage identity, file governance, workflow definitions, task dispatch, and AI orchestration; a Python service stays close to model inference and media processing.
 
-![Workflow Editor](screenshot.png)
+![Workflow Editor]()
 
 ---
 
